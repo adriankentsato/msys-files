@@ -1,0 +1,19 @@
+registerSSH() {
+    local key_path="$1"
+    local timeout=600
+
+    # Start ssh-agent if not already running
+    if [ -z "$SSH_AUTH_SOCK" ]; then
+        eval $(ssh-agent -s)
+    fi
+
+    # Check if the key is already added
+    ssh-add -l | grep -q "$(ssh-keygen -lf "$key_path" | awk '{print $2}')"
+    if [ $? -ne 0 ]; then
+        # Key not found, add it with timeout
+        ssh-add -t "$timeout" "$key_path"
+        echo "SSH key added with a $timeout second timeout."
+    else
+        echo "SSH key already exists in the agent."
+    fi
+}
